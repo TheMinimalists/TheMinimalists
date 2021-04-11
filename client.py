@@ -27,7 +27,7 @@ while True:
     print(s_name, ":", message)
     message = input(str("Me : "))
     if message == "exit$":
-        message = s_name + "Left chat room!"
+        message = s_name + " left chat room!"
         listensocket.send(message.encode())
         print("\n")
         break
