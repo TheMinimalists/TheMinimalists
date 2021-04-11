@@ -1,7 +1,7 @@
 # client.py
 import time, socket, sys
 
-print("\nWelcome to Chat Room\n")
+print("\nWelcome to Minimal Chat Room\n")
 print("Initialising....\n")
 time.sleep(1)
 
@@ -20,14 +20,14 @@ print("Connected...\n")
 listensocket.send(name.encode())
 s_name = listensocket.recv(1024)
 s_name = s_name.decode()
-print(s_name, "has joined the chat room\nEnter [exit] to exit chat room\n")
+print(s_name, "has joined the Minimal Chat Room\nEnter exit$ to exit Minimal Chat Room\n")
 while True:
     message = listensocket.recv(1024)
     message = message.decode()
     print(s_name, ":", message)
     message = input(str("Me : "))
-    if message == "[e]":
-        message = "Left chat room!"
+    if message == "exit$":
+        message = s_name + "Left chat room!"
         listensocket.send(message.encode())
         print("\n")
         break
