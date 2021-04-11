@@ -1,6 +1,17 @@
 # client.py
 import time, socket, sys
 
+def check_port(port):
+    if(port>3000):
+        return True
+    else:
+        print("Might be busy.Try above 3000")
+        return enter_port()
+def enter_port():
+    port = int(input("Enter Port Number: "))
+    if(check_port(port)):
+        return port
+
 print("\nWelcome to Minimal Chat Room\n")
 print("Initialising....\n")
 time.sleep(1)
@@ -10,8 +21,8 @@ shost = socket.gethostname()
 ip = socket.gethostbyname(shost)
 print(shost, "(", ip, ")\n")
 host = input(str("Enter server address: "))
+port=enter_port()
 name = input(str("\nEnter your name: "))
-port = int(input("Enter Port Number: "))
 print("\nTrying to connect to ", host, "(", port, ")\n")
 time.sleep(1)
 listensocket.connect((host, port))
@@ -27,7 +38,7 @@ while True:
     print(s_name, ":", message)
     message = input(str("Me : "))
     if message == "exit$":
-        message = s_name + " left chat room!"
+        message = " $left chat room!$ "
         listensocket.send(message.encode())
         print("\n")
         break

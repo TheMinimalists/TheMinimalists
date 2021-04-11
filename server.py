@@ -3,12 +3,22 @@ import time, socket, sys
 print("\nWelcome to Minimal Chat Room\n")
 print("Initialising....\n")
 time.sleep(1)
+def check_port(port):
+    if(port>3000):
+        return True
+    else:
+        print("Others might be using this.Why not use above 3000?")
+        return enter_port()
+def enter_port():
+    port = int(input("Enter Port Number: "))
+    if(check_port(port)):
+        return port
 
 listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 ip = socket.gethostbyname(host)
-port = int(input("Enter Port Number: "))
-listensocket.bind((host, port))
+
+listensocket.bind((host, enter_port()))
 print(host, "(", ip, ")\n")
 name = input(str("Enter your name: "))
            
@@ -24,7 +34,7 @@ conn.send(name.encode())
 while True:
     message = input(str("Me : "))
     if message == "exit$":
-        message = s_name + " left chat room!"
+        message =" $left chat room!$ "
         conn.send(message.encode())
         print("\n")
         break
