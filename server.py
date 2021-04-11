@@ -24,7 +24,7 @@ conn.send(name.encode())
 while True:
     message = input(str("Me : "))
     if message == "exit$":
-        message = s_name + "Left chat room!"
+        message = s_name + " left chat room!"
         conn.send(message.encode())
         print("\n")
         break
