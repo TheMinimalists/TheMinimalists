@@ -1,5 +1,4 @@
-# client.py
-import time, socket, sys
+import socket, sys
 
 def check_port(port):
     if(port>3000):
@@ -12,9 +11,8 @@ def enter_port():
     if(check_port(port)):
         return port
 
-print("\nWelcome to Minimal Chat Room\n")
+print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
-time.sleep(1)
 
 listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 shost = socket.gethostname()
@@ -24,7 +22,7 @@ host = input(str("Enter server address: "))
 port=enter_port()
 name = input(str("\nEnter your name: "))
 print("\nTrying to connect to ", host, "(", port, ")\n")
-time.sleep(1)
+
 listensocket.connect((host, port))
 print("Connected...\n")
 
@@ -38,7 +36,7 @@ while True:
     print(s_name, ":", message)
     message = input(str("Me : "))
     if message == "exit$":
-        message = " $left chat room!$ "
+        message = "\33[31m\33[1m $left chat room!$ \33[0m"
         listensocket.send(message.encode())
         print("\n")
         break
