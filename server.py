@@ -1,8 +1,8 @@
-import time, socket, sys
+import socket, sys
 
-print("\nWelcome to Minimal Chat Room\n")
+print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
-time.sleep(1)
+
 def check_port(port):
     if(port>3000):
         return True
@@ -34,7 +34,7 @@ conn.send(name.encode())
 while True:
     message = input(str("Me : "))
     if message == "exit$":
-        message =" $left chat room!$ "
+        message =" \33[31m\33[1m $left chat room!$ \33[0m"
         conn.send(message.encode())
         print("\n")
         break
