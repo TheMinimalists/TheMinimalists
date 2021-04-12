@@ -29,7 +29,7 @@ print("Connected...\n")
 listensocket.send(name.encode())
 s_name = listensocket.recv(1024)
 s_name = s_name.decode()
-print(s_name, "has joined the Minimal Chat Room\nEnter exit$ to exit Minimal Chat Room\n")
+print(s_name, "is in the Minimal Chat Room\nEnter\33[31m\33[1m exit$\33[0m to exit Minimal Chat Room\n")
 while True:
     message = listensocket.recv(1024)
     message = message.decode()
