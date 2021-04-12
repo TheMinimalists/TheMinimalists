@@ -29,7 +29,7 @@ print("Received connection from ", addr[0], "(", addr[1], ")\n")
 
 s_name = conn.recv(1024)
 s_name = s_name.decode()
-print(s_name, "has connected to the Minimal Chat Room\nEnter exit$ to exit Minimal Chat Room\n")
+print(s_name, "has connected to the Minimal Chat Room\nEnter\33[31m\33[1m exit$ \33[0mto exit Minimal Chat Room\n")
 conn.send(name.encode())
 while True:
     message = input(str("Me : "))
