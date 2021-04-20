@@ -1,19 +1,11 @@
-import socket, sys
+import socket 
+from _thread import *
+import sys
 from collections import defaultdict as df
+import time
 
+print("Initialising......")
 print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
-print("Initialising....\n")
-
-def check_port(port):
-    if(port>3000):
-        return True
-    else:
-        print("Others might be using this.Why not use above 3000?")
-        return enter_port()
-def enter_port():
-    port = int(input("Enter Port Number: "))
-    if(check_port(port)):
-        return port
 
 class Server:
     def __init__(self):
@@ -32,17 +24,17 @@ class Server:
         while True:
             connection, address = self.server.accept()
             print(str(address[0]) + ":" + str(address[1]) + " Connected")
-            self.Clients(connection)
             
+
+            start_new_thread(self.clientThread, (connection,))
+
         self.server.close()
 
     
-    def Clients(self, connection):
-        user_id = connection.recv(1024).decode()
-        room_id = connection.recv(1024).decode()
-        print(user_id,room_id)
-        # welcome=f"{user_id} welcome to{room_id}"
-        # self.broadcast(welcome, connection, room_id)
+    def clientThread(self, connection):
+        user_id = connection.recv(1024).decode().replace("User ", "")
+        room_id = connection.recv(1024).decode().replace("Join ", "")
+
         if room_id not in self.rooms:
             connection.send("New Group created".encode())
         else:
@@ -59,7 +51,7 @@ class Server:
                     self.broadcast(message_to_send, connection, room_id)
 
                 else:
-                    print("No message here")
+                    self.remove(connection, room_id)
             except Exception as e:
                 message_to_send = "<" + str(user_id) + " left the chat" + "> "
                 self.broadcast(message_to_send, connection, room_id)
@@ -74,12 +66,18 @@ class Server:
                     client.send(message_to_send.encode())
                 except:
                     client.close()
+                    self.remove(client, room_id)
+
+    
+    def remove(self, connection, room_id):
+        if connection in self.rooms[room_id]:
+            self.rooms[room_id].remove(connection)
+        print(self.rooms[room_id])
 
 
 if __name__ == "__main__":
-    host = socket.gethostname()
-    ip_address = socket.gethostbyname(host)
-    port = enter_port()
-    
+    ip_address = "127.0.0.1"
+    port = 12345
+
     s = Server()
     s.accept_connections(ip_address, port)
