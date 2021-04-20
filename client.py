@@ -1,4 +1,4 @@
-import socket, sys
+import socket, sys, time
 
 def check_port(port):
     if(port>3000):
@@ -14,30 +14,45 @@ def enter_port():
 print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
 
-listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-shost = socket.gethostname()
-ip = socket.gethostbyname(shost)
-print(shost, "(", ip, ")\n")
-host = input(str("Enter server address: "))
-port=enter_port()
-name = input(str("\nEnter your name: "))
-print("\nTrying to connect to ", host, "(", port, ")\n")
+class Client:
+    
+    def __init__(self, ip_address, port):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.connect((ip_address, port))
+        self.userEntryName=input("Enter username:")
+        self.roomEntryName=input("Enter Room name:")
+        self.goAhead(self.userEntryName, self.roomEntryName)
 
-listensocket.connect((host, port))
-print("Connected...\n")
+        self.receive()
+        # self.sendMessage()
+            
+        
 
-listensocket.send(name.encode())
-s_name = listensocket.recv(1024)
-s_name = s_name.decode()
-print(s_name, "is in the Minimal Chat Room\nEnter\33[31m\33[1m exit$\33[0m to exit Minimal Chat Room\n")
-while True:
-    message = listensocket.recv(1024)
-    message = message.decode()
-    print(s_name, ":", message)
-    message = input(str("Me : "))
-    if message == "exit$":
-        message = "\33[31m\33[1m $left chat room!$ \33[0m"
-        listensocket.send(message.encode())
-        print("\n")
-        break
-    listensocket.send(message.encode())
+    def goAhead(self, username, room_id=0):
+        self.name = username
+        self.server.send(str.encode(username))
+        time.sleep(0.1)
+        self.server.send(str.encode(room_id))
+        
+    def receive(self):
+        while True:
+            message = self.server.recv(1024).decode()
+            print(message)
+            self.msg=input("me:")
+            self.msg= self.name+ self.msg
+            self.server.send(self.msg.encode())
+
+    # def sendMessage(self): 
+    #     while True:  
+    #         self.msg=input("me:")
+    #         self.msg= self.name+ self.msg
+    #         self.server.send(self.msg.encode())
+    #         # print(self.name, ":", self.msg)
+    #         break
+        
+        
+if __name__ == "__main__":
+    host = socket.gethostname()
+    ip_address = socket.gethostbyname(host)
+    port = enter_port()
+    c = Client(ip_address, port)

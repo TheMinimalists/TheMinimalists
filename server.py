@@ -1,4 +1,5 @@
 import socket, sys
+from collections import defaultdict as df
 
 print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
@@ -14,31 +15,71 @@ def enter_port():
     if(check_port(port)):
         return port
 
-listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = socket.gethostname()
-ip = socket.gethostbyname(host)
+class Server:
+    def __init__(self):
+        self.rooms = df(list)
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
 
-listensocket.bind((host, enter_port()))
-print(host, "(", ip, ")\n")
-name = input(str("Enter your name: "))
-           
-listensocket.listen(1)
-print("Waiting for client")
-conn, addr = listensocket.accept()
-print("Received connection from ", addr[0], "(", addr[1], ")\n")
 
-s_name = conn.recv(1024)
-s_name = s_name.decode()
-print(s_name, "has connected to the Minimal Chat Room\nEnter\33[31m\33[1m exit$ \33[0mto exit Minimal Chat Room\n")
-conn.send(name.encode())
-while True:
-    message = input(str("Me : "))
-    if message == "exit$":
-        message =" \33[31m\33[1m $left chat room!$ \33[0m"
-        conn.send(message.encode())
-        print("\n")
-        break
-    conn.send(message.encode())
-    message = conn.recv(1024)
-    message = message.decode()
-    print(s_name, ":", message)
+    def accept_connections(self, ip_address, port):
+        self.ip_address = ip_address
+        self.port = port
+        self.server.bind((self.ip_address, int(self.port)))
+        self.server.listen(100)
+
+        while True:
+            connection, address = self.server.accept()
+            print(str(address[0]) + ":" + str(address[1]) + " Connected")
+            self.Clients(connection)
+            
+        self.server.close()
+
+    
+    def Clients(self, connection):
+        user_id = connection.recv(1024).decode()
+        room_id = connection.recv(1024).decode()
+        print(user_id,room_id)
+        # welcome=f"{user_id} welcome to{room_id}"
+        # self.broadcast(welcome, connection, room_id)
+        if room_id not in self.rooms:
+            connection.send("New Group created".encode())
+        else:
+            connection.send("Welcome to Minimal Chat Room".encode())
+
+        self.rooms[room_id].append(connection)
+
+        while True:
+            try:
+                message = connection.recv(1024)
+                print(str(message.decode()))
+                if message:
+                    message_to_send = "<" + str(user_id) + "> " + message.decode()
+                    self.broadcast(message_to_send, connection, room_id)
+
+                else:
+                    print("No message here")
+            except Exception as e:
+                message_to_send = "<" + str(user_id) + " left the chat" + "> "
+                self.broadcast(message_to_send, connection, room_id)
+                print("Client disconnected")
+                break
+
+
+    def broadcast(self, message_to_send, connection, room_id):
+        for client in self.rooms[room_id]:
+            if client != connection:
+                try:
+                    client.send(message_to_send.encode())
+                except:
+                    client.close()
+
+
+if __name__ == "__main__":
+    host = socket.gethostname()
+    ip_address = socket.gethostbyname(host)
+    port = enter_port()
+    
+    s = Server()
+    s.accept_connections(ip_address, port)
