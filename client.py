@@ -1,17 +1,8 @@
-import socket, sys, time
+import socket
+import time
+import threading
+import os
 
-def check_port(port):
-    if(port>3000):
-        return True
-    else:
-        print("Might be busy.Try above 3000")
-        return enter_port()
-def enter_port():
-    port = int(input("Enter Port Number: "))
-    if(check_port(port)):
-        return port
-
-print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
 
 class Client:
@@ -33,6 +24,12 @@ class Client:
         self.server.send(str.encode(username))
         time.sleep(0.1)
         self.server.send(str.encode(room_id))
+        
+        self.login.destroy()
+        self.layout()
+
+        rcv = threading.Thread(target=self.receive) 
+        rcv.start()
         
     def receive(self):
         while True:
