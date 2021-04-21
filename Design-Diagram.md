@@ -1,3 +1,3 @@
-#### Design Diagram Week-1
+### Design Diagram Week-2
 
-![Design diagram](https://user-images.githubusercontent.com/55986973/114334764-e7099100-9b68-11eb-964d-299e88bee2eb.png)
+![Design diagram - 2 (1)](https://user-images.githubusercontent.com/54764979/115495355-15801e00-a285-11eb-908d-b1903a9281ac.png)
