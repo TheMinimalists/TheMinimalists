@@ -2,13 +2,15 @@ import socket
 import tkinter as tk
 from tkinter import font
 from tkinter import ttk
+from tkinter import filedialog
 import time
 import threading
 import os
+
 print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 print("Initialising....\n")
 
-class Client:
+class GUI:
     
     def __init__(self, ip_address, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,7 +26,7 @@ class Client:
         self.login.configure(width=400, height=350, bg="#5C5E5E", highlightthickness=1, highlightcolor= "black")
 
         self.pls = tk.Label(self.login, 
-                            text="Please Login to a Minimal chat room", 
+                            text="Please Login to a Minimal Chatroom", 
                             justify=tk.CENTER,
                             font="Helvetica 13 bold", bg="#5C5E5E")
 
@@ -40,7 +42,7 @@ class Client:
         self.roomLabelName = tk.Label(self.login, text="Room Id: ", font="Helvetica 12", bg="#5C5E5E")
         self.roomLabelName.place(relheight=0.2, relx=0.1, rely=0.40)
 
-        self.roomEntryName = tk.Entry(self.login, font="Helvetica 12",)
+        self.roomEntryName = tk.Entry(self.login, font="Helvetica 12")
         self.roomEntryName.place(relwidth=0.4 ,relheight=0.1, relx=0.35, rely=0.45)
         
         self.go = tk.Button(self.login, 
@@ -95,7 +97,7 @@ class Client:
 		
         self.textCons.place(relheight=0.745, relwidth=1, rely=0.08) 
 		
-        self.labelBottom = tk.Label(self.Window, bg="#ABB2B9", height=80) 
+        self.labelBottom = tk.Label(self.Window, bg="#ABB2B9", height=55) 
 		
         self.labelBottom.place(relwidth = 1, 
 							    rely = 0.8) 
@@ -105,8 +107,8 @@ class Client:
                                 fg = "#EAECEE", 
                                 font = "Helvetica 11")
         self.entryMsg.place(relwidth = 0.74, 
-							relheight = 0.03, 
-							rely = 0.008, 
+							relheight = 0.035, 
+							rely = 0.001, 
 							relx = 0.011) 
         self.entryMsg.focus()
 
@@ -117,20 +119,21 @@ class Client:
 								bg = "#ABB2B9", 
 								command = lambda : self.sendButton(self.entryMsg.get())) 
         self.buttonMsg.place(relx = 0.77, 
-							rely = 0.008, 
-							relheight = 0.03, 
+							rely = 0.001, 
+							relheight = 0.035, 
 							relwidth = 0.22) 
-        
-        self.buttonLeave = tk.Button(self.labelBottom, 
+
+
+        self.buttonLeave = tk.Button(self.labelFile, 
 								text = "Leave", 
 								font = "Helvetica 10 bold", 
-								width = 40, 
+								width = 13, 
 								bg = "#ABB2B9", 
 								command = lambda: self.Window.destroy())
 
         self.buttonLeave.place(relx = 0.20, 
-							rely = 0.049, 
-							relheight = 0.03, 
+							rely = 0.0365, 
+							relheight = 0.030, 
 							relwidth = 0.60)
     
 
@@ -143,23 +146,62 @@ class Client:
         self.textCons.config(state = tk.DISABLED)
 
 
-    def sendButton(self, msg):
+    def sendFile(self):
+        self.server.send("FILE".encode())
+        time.sleep(0.1)
+        self.server.send(str("client_" + os.path.basename(self.filename)).encode())
+        time.sleep(0.1)
+        self.server.send(str(os.path.getsize(self.filename)).encode())
+        time.sleep(0.1)
+
+        file = open(self.filename, "rb")
+        data = file.read(1024)
+        while data:
+            self.server.send(data)
+            data = file.read(1024)
+        self.textCons.config(state=tk.DISABLED)
+        self.textCons.config(state = tk.NORMAL)
+        self.textCons.insert(tk.END, "<You> "
+                                     + str(os.path.basename(self.filename)) 
+                                     + " Sent\n\n")
         self.textCons.config(state = tk.DISABLED) 
-        self.msg=msg 
-        self.entryMsg.delete(0, tk.END) 
-        snd= threading.Thread(target = self.sendMessage) 
-        snd.start() 
+        self.textCons.see(tk.END)
 
-
+    
     def receive(self):
         while True:
             try:
                 message = self.server.recv(1024).decode()
-                self.textCons.config(state=tk.DISABLED)
-                self.textCons.config(state = tk.NORMAL)
-                self.textCons.insert(tk.END, message+"\n\n") 
-                self.textCons.config(state = tk.DISABLED) 
-                self.textCons.see(tk.END)
+
+                if str(message) == "FILE":
+                    file_name = self.server.recv(1024).decode()
+                    lenOfFile = self.server.recv(1024).decode()
+                    send_user = self.server.recv(1024).decode()
+
+                    if os.path.exists(file_name):
+                        os.remove(file_name)
+
+                    total = 0
+                    with open(file_name, 'wb') as file:
+                        while str(total) != lenOfFile:
+                            data = self.server.recv(1024)
+                            total = total + len(data)     
+                            file.write(data)
+                    
+                    self.textCons.config(state=tk.DISABLED)
+                    self.textCons.config(state = tk.NORMAL)
+                    self.textCons.insert(tk.END, "<" + str(send_user) + "> " + file_name + " Received\n\n")
+                    self.textCons.config(state = tk.DISABLED) 
+                    self.textCons.see(tk.END)
+
+                else:
+                    self.textCons.config(state=tk.DISABLED)
+                    self.textCons.config(state = tk.NORMAL)
+                    self.textCons.insert(tk.END, 
+                                    message+"\n\n") 
+
+                    self.textCons.config(state = tk.DISABLED) 
+                    self.textCons.see(tk.END)
 
             except: 
                 print("An error occured!") 
@@ -177,8 +219,10 @@ class Client:
             self.textCons.config(state = tk.DISABLED) 
             self.textCons.see(tk.END)
             break
-        
+
+
+
 if __name__ == "__main__":
     ip_address = "127.0.0.1"
     port = 12345
-    g = Client(ip_address, port)
+    g = GUI(ip_address, port)
