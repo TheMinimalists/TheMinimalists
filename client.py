@@ -72,7 +72,7 @@ class GUI:
         self.Window.deiconify()
         self.Window.title("MINIMAL CHAT ROOM")
         self.Window.resizable(width=False, height=False)
-        self.Window.configure(width=470, height=550, bg="#282A2A")
+        self.Window.configure(width=600, height=750, bg="#282A2A")
         self.chatBoxHead = tk.Label(self.Window, 
                                     bg = "#282A2A", 
                                     fg = "#EAECEE", 
@@ -97,7 +97,7 @@ class GUI:
 		
         self.textCons.place(relheight=0.745, relwidth=1, rely=0.08) 
 		
-        self.labelBottom = tk.Label(self.Window, bg="#ABB2B9", height=55) 
+        self.labelBottom = tk.Label(self.Window, bg="#ABB2B9", height=70) 
 		
         self.labelBottom.place(relwidth = 1, 
 							    rely = 0.8) 
@@ -124,6 +124,44 @@ class GUI:
 							relwidth = 0.22) 
 
 
+        self.labelFile = tk.Label(self.Window, bg="#ABB2B9", height=70) 
+		
+        self.labelFile.place(relwidth = 1, 
+							    rely = 0.86) 
+		
+        self.fileLocation = tk.Label(self.labelFile, 
+                                text = "Choose file to send",
+                                bg = "#282A2A", 
+                                fg = "#EAECEE", 
+                                font = "Helvetica 11")
+        self.fileLocation.place(relwidth = 0.65, 
+                                relheight = 0.028, 
+                                rely = 0.001, 
+                                relx = 0.011) 
+
+        self.browse = tk.Button(self.labelFile, 
+								text = "Browse", 
+								font = "Helvetica 10 bold", 
+								width = 13, 
+								bg = "#ABB2B9", 
+								command = self.browseFile)
+        self.browse.place(relx = 0.675, 
+							rely = 0.001, 
+							relheight = 0.028, 
+							relwidth = 0.15) 
+
+        self.sengFileBtn = tk.Button(self.labelFile, 
+								text = "Send", 
+								font = "Helvetica 10 bold", 
+								width = 13, 
+								bg = "#ABB2B9", 
+								command = self.sendFile)
+        self.sengFileBtn.place(relx = 0.84, 
+							rely = 0.001, 
+							relheight = 0.028, 
+							relwidth = 0.15)
+
+
         self.buttonLeave = tk.Button(self.labelFile, 
 								text = "Leave", 
 								font = "Helvetica 10 bold", 
@@ -131,10 +169,10 @@ class GUI:
 								bg = "#ABB2B9", 
 								command = lambda: self.Window.destroy())
 
-        self.buttonLeave.place(relx = 0.20, 
+        self.buttonLeave.place(relx = 0.69, 
 							rely = 0.0365, 
 							relheight = 0.030, 
-							relwidth = 0.60)
+							relwidth = 0.30)
     
 
         self.textCons.config(cursor = "arrow")
@@ -144,6 +182,15 @@ class GUI:
 
         scrollbar.config(command = self.textCons.yview)
         self.textCons.config(state = tk.DISABLED)
+
+    def browseFile(self):
+        self.filename = filedialog.askopenfilename(initialdir="/", 
+                                    title="Select a file",
+                                    filetypes = (("Text files", 
+                                                "*.txt*"), 
+                                                ("all files", 
+                                                "*.*")))
+        self.fileLocation.configure(text="File Opened: "+ self.filename)
 
 
     def sendFile(self):
@@ -167,7 +214,15 @@ class GUI:
         self.textCons.config(state = tk.DISABLED) 
         self.textCons.see(tk.END)
 
-    
+
+    def sendButton(self, msg):
+        self.textCons.config(state = tk.DISABLED) 
+        self.msg=msg 
+        self.entryMsg.delete(0, tk.END) 
+        snd= threading.Thread(target = self.sendMessage) 
+        snd.start() 
+
+
     def receive(self):
         while True:
             try:
