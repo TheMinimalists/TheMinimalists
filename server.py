@@ -12,7 +12,6 @@ class Server:
         self.rooms = df(list)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
 
 
     def accept_connections(self, ip_address, port):
@@ -24,7 +23,6 @@ class Server:
         while True:
             connection, address = self.server.accept()
             print(str(address[0]) + ":" + str(address[1]) + " Connected")
-            
 
             start_new_thread(self.clientThread, (connection,))
 
@@ -36,9 +34,11 @@ class Server:
         room_id = connection.recv(1024).decode().replace("Join ", "")
 
         if room_id not in self.rooms:
-            connection.send("New Group created".encode())
+            connection.send("New Group Created".encode())
+
         else:
             connection.send("Welcome to Minimal Chat Room".encode())
+
 
         self.rooms[room_id].append(connection)
 
@@ -47,8 +47,12 @@ class Server:
                 message = connection.recv(1024)
                 print(str(message.decode()))
                 if message:
-                    message_to_send = "<" + str(user_id) + "> " + message.decode()
-                    self.broadcast(message_to_send, connection, room_id)
+                    if str(message.decode()) == "FILE":
+                        self.broadcastFile(connection, room_id, user_id)
+
+                    else:
+                        message_to_send = "<" + str(user_id) + "> " + message.decode()
+                        self.broadcast(message_to_send, connection, room_id)
 
                 else:
                     self.remove(connection, room_id)
@@ -57,6 +61,40 @@ class Server:
                 self.broadcast(message_to_send, connection, room_id)
                 print("Client disconnected")
                 break
+    
+    
+    def broadcastFile(self, connection, room_id, user_id):
+        file_name = connection.recv(1024).decode()
+        lenOfFile = connection.recv(1024).decode()
+        for client in self.rooms[room_id]:
+            if client != connection:
+                try: 
+                    client.send("FILE".encode())
+                    time.sleep(0.1)
+                    client.send(file_name.encode())
+                    time.sleep(0.1)
+                    client.send(lenOfFile.encode())
+                    time.sleep(0.1)
+                    client.send(user_id.encode())
+                except:
+                    client.close()
+                    self.remove(client, room_id)
+
+        total = 0
+        print(file_name, lenOfFile)
+        while str(total) != lenOfFile:
+            data = connection.recv(1024)
+            total = total + len(data)
+            for client in self.rooms[room_id]:
+                if client != connection:
+                    try: 
+                        client.send(data)
+                        # time.sleep(0.1)
+                    except:
+                        client.close()
+                        self.remove(client, room_id)
+        print("Sent")
+
 
 
     def broadcast(self, message_to_send, connection, room_id):
@@ -72,7 +110,7 @@ class Server:
     def remove(self, connection, room_id):
         if connection in self.rooms[room_id]:
             self.rooms[room_id].remove(connection)
-        print(self.rooms[room_id])
+
 
 
 if __name__ == "__main__":
