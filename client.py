@@ -55,7 +55,9 @@ class GUI:
         self.Window.mainloop()
 
 
+
     def goAhead(self, username, room_id=0):
+        self.attachedFile = False
         self.name = username
         self.server.send(str.encode(username))
         time.sleep(0.1)
@@ -148,8 +150,9 @@ class GUI:
         self.browse.place(relx = 0.675, 
 							rely = 0.001, 
 							relheight = 0.028, 
-							relwidth = 0.15) 
-
+							relwidth = 0.15)
+        # I disabled this send file button because it is not necessary for this version
+        """
         self.sengFileBtn = tk.Button(self.labelFile, 
 								text = "Send", 
 								font = "Helvetica 10 bold", 
@@ -160,7 +163,7 @@ class GUI:
 							rely = 0.001, 
 							relheight = 0.028, 
 							relwidth = 0.15)
-
+        """
 
         self.buttonLeave = tk.Button(self.labelFile, 
 								text = "Leave", 
@@ -191,8 +194,15 @@ class GUI:
                                                 ("all files", 
                                                 "*.*")))
         self.fileLocation.configure(text="File Opened: "+ self.filename)
+        if self.filename!="":
+            self.attachedFile = True
+            print(self.attachedFile)
+        else:
+            self.attachedFile = False
+            print(self.attachedFile)
 
-
+    # same here with send file button
+    """
     def sendFile(self):
         self.server.send("FILE".encode())
         time.sleep(0.1)
@@ -211,9 +221,11 @@ class GUI:
         self.textCons.insert(tk.END, "<You> "
                                      + str(os.path.basename(self.filename)) 
                                      + " Sent\n\n")
+        #clear file location after sending
+
         self.textCons.config(state = tk.DISABLED) 
         self.textCons.see(tk.END)
-
+    """
 
     def sendButton(self, msg):
         self.textCons.config(state = tk.DISABLED) 
@@ -264,18 +276,47 @@ class GUI:
                 break
 
     def sendMessage(self):
-        self.textCons.config(state=tk.DISABLED) 
-        while True:  
-            self.server.send(self.msg.encode())
-            self.textCons.config(state = tk.NORMAL)
-            self.textCons.insert(tk.END, 
-                            "<You> " + self.msg + "\n\n") 
+        self.textCons.config(state=tk.DISABLED)
+        while True:
+            if self.msg !="":
+                self.server.send(self.msg.encode())
+                self.textCons.config(state=tk.NORMAL)
+                self.textCons.insert(tk.END,
+                                     "<You> " + self.msg + "\n\n")
 
-            self.textCons.config(state = tk.DISABLED) 
-            self.textCons.see(tk.END)
+                self.textCons.config(state=tk.DISABLED)
+                self.textCons.see(tk.END)
             break
+        if self.attachedFile == True:
+            print(self.filename)
+            self.server.send("FILE".encode())
+            time.sleep(0.1)
+            self.server.send(str("client_" + os.path.basename(self.filename)).encode())
+            time.sleep(0.1)
+            self.server.send(str(os.path.getsize(self.filename)).encode())
+            time.sleep(0.1)
 
+            file = open(self.filename, "rb")
+            data = file.read(1024)
+            while data:
+                self.server.send(data)
+                data = file.read(1024)
+            self.textCons.config(state=tk.DISABLED)
+            self.textCons.config(state=tk.NORMAL)
+            if self.msg!="":
+                self.textCons.insert(tk.END, "      "
+                                     +str(os.path.basename(self.filename))
+                                     + " Sent\n\n")
+            else:
+                self.textCons.insert(tk.END, "<You> "
+                                     + str(os.path.basename(self.filename))
+                                     + " Sent\n\n")
+            self.textCons.config(state=tk.DISABLED)
+            self.textCons.see(tk.END)
 
+            #automatically clear browse to prevent someone hit Send button multiple time and send file muiltiple time
+            self.fileLocation.configure(text="Choose file to send")
+            self.attachedFile = False
 
 if __name__ == "__main__":
     ip_address = "127.0.0.1"
