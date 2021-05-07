@@ -173,8 +173,14 @@ class GUI:
 							rely = 0.0365, 
 							relheight = 0.030, 
 							relwidth = 0.30)
+        
+        self.viewmembers = tk.Button(self.labelFile, 
+								text = "Members", 
+								font = "Helvetica 10 bold", 
+								width = 13, 
+								bg = "#ABB2B9", 
+								command = lambda: self.Window.destroy())
     
-
         self.textCons.config(cursor = "arrow")
         scrollbar = tk.Scrollbar(self.textCons) 
         scrollbar.place(relheight = 1, 

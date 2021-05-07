@@ -35,12 +35,14 @@ class Server:
 
         if room_id not in self.rooms:
             connection.send("New Group Created".encode())
+            # connection.send("\nYou Are Admin".encode())
+            # admin = user_id
 
         else:
             connection.send("Welcome to Minimal Chat Room".encode())
-
-
-        self.rooms[room_id].append(connection)
+            # connection.send(admin + "is Admin".encode())
+        self.rooms[room_id].append((connection,user_id))
+        print(self.rooms)
 
         while True:
             try:
@@ -49,7 +51,12 @@ class Server:
                 if message:
                     if str(message.decode()) == "FILE":
                         self.broadcastFile(connection, room_id, user_id)
-
+	                
+                    elif (str(message.decode()) == "/All") :
+                        all_list = [client[1] for client in self.rooms[room_id]]
+                        print(all_list)
+                        message_to_send = "<MinimalBot> " + "All user:  " + str(all_list)
+                        self.broadcast(message_to_send, connection, room_id)                       
                     else:
                         message_to_send = "<" + str(user_id) + "> " + message.decode()
                         self.broadcast(message_to_send, connection, room_id)
@@ -60,6 +67,7 @@ class Server:
                 message_to_send = "<" + str(user_id) + " left the chat" + "> "
                 self.broadcast(message_to_send, connection, room_id)
                 print("Client disconnected")
+                print(e)
                 break
     
     
@@ -99,11 +107,12 @@ class Server:
 
     def broadcast(self, message_to_send, connection, room_id):
         for client in self.rooms[room_id]:
-            if client != connection:
+            print(client)
+            if client[0] != connection:
                 try:
-                    client.send(message_to_send.encode())
+                    client[0].send(message_to_send.encode())
                 except:
-                    client.close()
+                    client[0].close()
                     self.remove(client, room_id)
 
     
