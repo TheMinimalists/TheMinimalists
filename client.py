@@ -57,6 +57,7 @@ class GUI:
 
     def goAhead(self, username, room_id=0):
         self.name = username
+        self.room_id=room_id
         self.server.send(str.encode(username))
         time.sleep(0.1)
         self.server.send(str.encode(room_id))
@@ -76,7 +77,8 @@ class GUI:
         self.chatBoxHead = tk.Label(self.Window, 
                                     bg = "#282A2A", 
                                     fg = "#EAECEE", 
-                                    text = self.name , 
+                                    text = "Username: ["+self.name+"] Room Name :["+self.room_id+"]", 
+
                                     font = "Helvetica 12 bold", 
                                     pady = 5)
 

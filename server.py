@@ -65,7 +65,14 @@ class Server:
                         else:
                             msg="You are not an admin"
                             print(msg)
-                            self.send_to_user(msg,connection,room_id)                       
+                            self.send_to_user(msg,connection,room_id) 
+                    elif (message.decode() == "/Admins") :
+                        print("admins printed ")
+                        admin_list=[client[1] for client in self.admins[room_id]]
+                        msg = "<MinimalBot> " + "All Admins:  " + str(admin_list)
+                        print(msg)
+                        self.send_to_user(msg,connection,room_id) 
+
                     else:
                         message_to_send = "<" + str(user_id) + "> " + message.decode()
                         self.broadcast(message_to_send, connection, room_id)
