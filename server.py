@@ -10,6 +10,7 @@ print("\n\33[34m\33[1m Welcome to Minimal Chat Room \33[0m\n")
 class Server:
     def __init__(self):
         self.rooms = df(list)
+        self.admins = df(list)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -35,7 +36,9 @@ class Server:
 
         if room_id not in self.rooms:
             connection.send("New Group Created".encode())
-            # connection.send("\nYou Are Admin".encode())
+
+            connection.send("\nYou Are Admin".encode())
+            self.admins[room_id].append((connection,user_id))
             # admin = user_id
 
         else:
@@ -53,10 +56,16 @@ class Server:
                         self.broadcastFile(connection, room_id, user_id)
 	                
                     elif (str(message.decode()) == "/All") :
-                        all_list = [client[1] for client in self.rooms[room_id]]
-                        print(all_list)
-                        message_to_send = "<MinimalBot> " + "All user:  " + str(all_list)
-                        self.broadcast(message_to_send, connection, room_id)                       
+                        print("Checking /All")
+                        if(connection in self.admins[room_id][0]):
+                            all_list = [client[1] for client in self.rooms[room_id]]
+                            print(all_list)
+                            message_to_send = "<MinimalBot> " + "All user:  " + str(all_list)
+                            self.broadcast_to_admins(message_to_send, connection, room_id)
+                        else:
+                            msg="You are not an admin"
+                            print(msg)
+                            self.send_to_user(msg,connection,room_id)                       
                     else:
                         message_to_send = "<" + str(user_id) + "> " + message.decode()
                         self.broadcast(message_to_send, connection, room_id)
@@ -115,7 +124,22 @@ class Server:
                     client[0].close()
                     self.remove(client, room_id)
 
-    
+    def send_to_user(self, message_to_send, connection, room_id):
+        try:
+            connection.send(message_to_send.encode())
+        except:
+            connection.close()
+            self.remove(connection, room_id)
+
+    def broadcast_to_admins(self, message_to_send, connection, room_id):
+        for client in self.admins[room_id]:
+            print(client)
+            try:
+                client[0].send(message_to_send.encode())
+            except:
+                client[0].close()
+                self.remove(client, room_id)
+
     def remove(self, connection, room_id):
         if connection in self.rooms[room_id]:
             self.rooms[room_id].remove(connection)

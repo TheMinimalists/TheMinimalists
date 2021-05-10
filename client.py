@@ -233,7 +233,7 @@ class GUI:
         while True:
             try:
                 message = self.server.recv(1024).decode()
-
+                print(message)
                 if str(message) == "FILE":
                     file_name = self.server.recv(1024).decode()
                     lenOfFile = self.server.recv(1024).decode()
@@ -272,11 +272,11 @@ class GUI:
     def sendMessage(self):
         self.textCons.config(state=tk.DISABLED) 
         while True:  
-            self.server.send(self.msg.encode())
+            print(self.msg)
             self.textCons.config(state = tk.NORMAL)
             self.textCons.insert(tk.END, 
                             "<You> " + self.msg + "\n\n") 
-
+            self.server.send(self.msg.encode())
             self.textCons.config(state = tk.DISABLED) 
             self.textCons.see(tk.END)
             break
