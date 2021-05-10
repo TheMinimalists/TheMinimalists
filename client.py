@@ -51,24 +51,38 @@ class GUI:
                             command = lambda: self.goAhead(self.userEntryName.get(), self.roomEntryName.get()))
         
         self.go.place(relx=0.35, rely=0.62)
-
+        self.userStatus = tk.Label(self.login, text="", font="Helvetica 12", bg="#5C5E5E")
+        self.userStatus.place(relwidth=0.5 ,relheight=0.1, relx=0.35, rely=0.72)
+        # self.label.configure(text="Text Updated")
         self.Window.mainloop()
 
 
     def goAhead(self, username, room_id=0):
+        self.userStatus.configure(text="Waiting to be accepted..")
         self.name = username
         self.room_id=room_id
-        self.server.send(str.encode(username))
+        self.server.send(str(username).encode())
         time.sleep(0.1)
-        self.server.send(str.encode(room_id))
-        
-        self.login.destroy()
-        self.layout()
-
+        self.server.send(str(room_id).encode())
+        # self.userStatus = tk.Label(self.login, text="Waiting for admin to accept...", font="Helvetica 12", bg="#5C5E5E")
+        # self.userStatus.place(relwidth=0.1 ,relheight=0.1, relx=0.35, rely=0.72)
+        # time.wait(5)
+        # self.login.destroy()
         rcv = threading.Thread(target=self.receive) 
         rcv.start()
-
-
+    
+    # def wait_layout(self):
+    #     self.Window.deiconify()
+    #     self.Window.title("MINIMAL CHAT ROOM")
+    #     self.Window.resizable(width=False, height=False)
+    #     self.Window.configure(width=600, height=750, bg="#282A2A")
+    #     self.chatBoxHead = tk.Label(self.Window, 
+    #                                 bg = "#282A2A", 
+    #                                 fg = "#EAECEE", 
+    #                                 text = "Username: ["+self.name+"] Room Name :["+self.room_id+"]", 
+    #                                 font = "Helvetica 12 bold", 
+    #                                 pady = 5)
+        
     def layout(self):
         self.Window.deiconify()
         self.Window.title("MINIMAL CHAT ROOM")
@@ -78,7 +92,6 @@ class GUI:
                                     bg = "#282A2A", 
                                     fg = "#EAECEE", 
                                     text = "Username: ["+self.name+"] Room Name :["+self.room_id+"]", 
-
                                     font = "Helvetica 12 bold", 
                                     pady = 5)
 
@@ -236,7 +249,12 @@ class GUI:
             try:
                 message = self.server.recv(1024).decode()
                 print(message)
-                if str(message) == "FILE":
+                if str(message) == "$Accepted":
+                    # print("Inside loop")
+                    self.login.destroy()
+                    self.layout()
+                elif str(message) == "FILE":
+                    # print("inside elif")
                     file_name = self.server.recv(1024).decode()
                     lenOfFile = self.server.recv(1024).decode()
                     send_user = self.server.recv(1024).decode()
@@ -256,8 +274,8 @@ class GUI:
                     self.textCons.insert(tk.END, "<" + str(send_user) + "> " + file_name + " Received\n\n")
                     self.textCons.config(state = tk.DISABLED) 
                     self.textCons.see(tk.END)
-
                 else:
+                    # print("inside else")                    
                     self.textCons.config(state=tk.DISABLED)
                     self.textCons.config(state = tk.NORMAL)
                     self.textCons.insert(tk.END, 
@@ -266,8 +284,10 @@ class GUI:
                     self.textCons.config(state = tk.DISABLED) 
                     self.textCons.see(tk.END)
 
-            except: 
-                print("An error occured!") 
+            except Exception as e: 
+                print("An error occured!")
+                print(e) 
+                self.login.destroy()
                 self.server.close() 
                 break
 

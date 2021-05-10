@@ -31,13 +31,14 @@ class Server:
 
     
     def clientThread(self, connection):
-        user_id = connection.recv(1024).decode().replace("User ", "")
-        room_id = connection.recv(1024).decode().replace("Join ", "")
+        user_id = connection.recv(1024).decode()
+        room_id = connection.recv(1024).decode()
 
         if room_id not in self.rooms:
+            connection.send("$Accepted".encode())
+            time.sleep(2)
             connection.send("New Group Created".encode())
-
-            connection.send("\nYou Are Admin".encode())
+            connection.send("You Are Admin".encode())
             self.admins[room_id].append((connection,user_id))
             # admin = user_id
 
