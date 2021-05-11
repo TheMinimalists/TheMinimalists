@@ -11,6 +11,7 @@ class Server:
     def __init__(self):
         self.rooms = df(list)
         self.admins = df(list)
+        self.wait_list=df(list)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -28,6 +29,15 @@ class Server:
             start_new_thread(self.clientThread, (connection,))
 
         self.server.close()
+    
+    def Accept_client(self, username,room_id):
+        print("hi")
+        for client in self.wait_list[room_id]:
+             if(username == client[1]):
+                 self.wait_list[room_id].remove(client)
+                 self.rooms[room_id].append(client)
+                 client[0].send("$Accepted".encode())
+            
 
     
     def clientThread(self, connection):
@@ -38,26 +48,35 @@ class Server:
             connection.send("$Accepted".encode())
             time.sleep(2)
             connection.send("New Group Created".encode())
-            connection.send("You Are Admin".encode())
+            connection.send("You Are Admin.To see requests go to /Waitlist and to accept enter /Accept 'username of requestee'".encode())
             self.admins[room_id].append((connection,user_id))
+            self.rooms[room_id].append((connection,user_id))
+
             # admin = user_id
 
         else:
-            connection.send("Welcome to Minimal Chat Room".encode())
+            self.wait_list[room_id].append((connection,user_id))
+            self.broadcast_to_admins("New User Request Detected",connection,room_id)
+            connection.send("$wait".encode())
             # connection.send(admin + "is Admin".encode())
-        self.rooms[room_id].append((connection,user_id))
         print(self.rooms)
 
         while True:
             try:
                 message = connection.recv(1024)
-                print(str(message.decode()))
+                message=str(message.decode())
+                print("down here")
+                # print(message.split()[0])
+                # print(message.split()[1])
+                print("done here")
+                # print(message.split()[1])
                 if message:
-                    if str(message.decode()) == "FILE":
+                    if message == "FILE":
                         self.broadcastFile(connection, room_id, user_id)
 	                
-                    elif (str(message.decode()) == "/All") :
+                    elif message == "/All" :
                         print("Checking /All")
+                        # print()
                         if(connection in self.admins[room_id][0]):
                             all_list = [client[1] for client in self.rooms[room_id]]
                             print(all_list)
@@ -67,15 +86,27 @@ class Server:
                             msg="You are not an admin"
                             print(msg)
                             self.send_to_user(msg,connection,room_id) 
-                    elif (message.decode() == "/Admins") :
+                    elif (message.split()[0] == "/Accept") :
+                        if(connection in self.admins[room_id][0]):
+                            self.Accept_client(message.split()[1],room_id)
+                        else:
+                            msg="You are not an admin"
+                            print(msg)
+                            self.send_to_user(msg,connection,room_id)                             
+                    elif message == "/Admins" :
                         print("admins printed ")
                         admin_list=[client[1] for client in self.admins[room_id]]
                         msg = "<MinimalBot> " + "All Admins:  " + str(admin_list)
                         print(msg)
                         self.send_to_user(msg,connection,room_id) 
+                    elif message == "/Waitlist":
+                        waiting_list=[client[1] for client in self.wait_list[room_id]]
+                        msg = "<MinimalBot> " + "All Requests:  " + str(waiting_list)
+                        print(msg)
+                        self.send_to_user(msg,connection,room_id)             
 
                     else:
-                        message_to_send = "<" + str(user_id) + "> " + message.decode()
+                        message_to_send = "<" + str(user_id) + "> " + message
                         self.broadcast(message_to_send, connection, room_id)
 
                 else:
@@ -139,7 +170,7 @@ class Server:
             connection.close()
             self.remove(connection, room_id)
 
-    def broadcast_to_admins(self, message_to_send, connection, room_id):
+    def broadcast_to_admins(self, message_to_send,connection, room_id):
         for client in self.admins[room_id]:
             print(client)
             try:

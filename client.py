@@ -253,6 +253,8 @@ class GUI:
                     # print("Inside loop")
                     self.login.destroy()
                     self.layout()
+                elif str(message)=="$wait":
+                    self.receive()
                 elif str(message) == "FILE":
                     # print("inside elif")
                     file_name = self.server.recv(1024).decode()
@@ -285,11 +287,11 @@ class GUI:
                     self.textCons.see(tk.END)
 
             except Exception as e: 
-                print("An error occured!")
+                # print("An error occured!")
                 print(e) 
-                self.login.destroy()
-                self.server.close() 
-                break
+                # self.login.destroy()
+                # self.server.close() 
+                # break
 
     def sendMessage(self):
         self.textCons.config(state=tk.DISABLED) 
