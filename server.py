@@ -146,7 +146,41 @@ class Server:
                 print("Client disconnected")
                 print(e)
                 break
-   
+    
+    
+    def broadcastFile(self, connection, room_id, user_id):
+        file_name = connection.recv(1024).decode()
+        lenOfFile = connection.recv(1024).decode()
+        for client in self.rooms[room_id]:
+            if client[0] != connection:
+                try: 
+                    client[0].send("FILE".encode())
+                    time.sleep(0.1)
+                    client[0].send(file_name.encode())
+                    time.sleep(0.1)
+                    client[0].send(lenOfFile.encode())
+                    time.sleep(0.1)
+                    client[0].send(user_id.encode())
+                except:
+                    client[0].close()
+                    self.remove(client, room_id)
+
+        total = 0
+        print(file_name, lenOfFile)
+        while str(total) != lenOfFile:
+            data = connection.recv(1024)
+            total = total + len(data)
+            for client in self.rooms[room_id]:
+                if client[0] != connection:
+                    try: 
+                        client[0].send(data)
+                        # time.sleep(0.1)
+                    except:
+                        client[0].close()
+                        self.remove(client, room_id)
+        print("Sent")
+
+
 
     def broadcast(self, message_to_send, connection, room_id):
         for client in self.rooms[room_id]:
